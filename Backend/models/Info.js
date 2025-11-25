@@ -8,44 +8,31 @@ const infoSchema = new mongoose.Schema(
       enum: ['Scheme', 'Facility'],
       required: true,
     },
-    title: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    description: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    region: {
-      type: String,
-      enum: ['All', 'Rural', 'Urban'],
-      default: 'All',
-    },
+    title: { type: String, required: true, trim: true },
+    description: { type: String, required: true, trim: true },
+    region: { type: String, enum: ['All', 'Rural', 'Urban'], default: 'All' },
+
+    // Scheme fields
     eligibility: String,
     benefits: String,
+    website: String,  // ← Properly placed
+
+    // Facility fields
     contactInfo: String,
     address: String,
     operatingHours: String,
-    language: {
-      type: String,
-      default: 'en',
-    },
+
+    language: { type: String, default: 'en' },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-// CORRECT WAY – NO 'next' parameter in Mongoose 6+
-infoSchema.pre('save', async function () {
-  // Auto-fill optional fields based on type
+// Auto-fill defaults
+infoSchema.pre('save', function () {
   if (this.type === 'Scheme') {
     this.eligibility = this.eligibility || 'Not specified';
     this.benefits = this.benefits || 'Not specified';
   }
-
   if (this.type === 'Facility') {
     this.contactInfo = this.contactInfo || 'Not specified';
     this.address = this.address || 'Not specified';
@@ -53,5 +40,4 @@ infoSchema.pre('save', async function () {
   }
 });
 
-const Info = mongoose.model('Info', infoSchema);
-module.exports = Info;
+module.exports = mongoose.model('Info', infoSchema);

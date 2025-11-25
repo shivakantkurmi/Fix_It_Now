@@ -4,7 +4,6 @@ const router = express.Router();
 const Info = require('../models/Info');
 const { protect, admin } = require('../middleware/auth');
 
-// GET all schemes/facilities
 router.get('/', async (req, res) => {
   try {
     const { type, region } = req.query;
@@ -20,11 +19,13 @@ router.get('/', async (req, res) => {
   }
 });
 
-// CREATE (Admin only)
-// routes/infoRoutes.js
 router.post('/', protect, admin, async (req, res) => {
   try {
-    const { type, title, description, region = 'All' } = req.body;
+    const { 
+      type, title, description, region = 'All', 
+      website, eligibility, benefits, 
+      contactInfo, address, operatingHours 
+    } = req.body;
 
     if (!type || !title?.trim() || !description?.trim()) {
       return res.status(400).json({ message: 'Title, description and type are required' });
@@ -35,31 +36,33 @@ router.post('/', protect, admin, async (req, res) => {
       title: title.trim(),
       description: description.trim(),
       region,
-      // Optional fields will be auto-filled by pre-save hook
+      website: website?.trim() || undefined,
+      eligibility: eligibility?.trim(),
+      benefits: benefits?.trim(),
+      contactInfo: contactInfo?.trim(),
+      address: address?.trim(),
+      operatingHours: operatingHours?.trim(),
     });
 
     const saved = await info.save();
     res.status(201).json(saved);
   } catch (error) {
     console.error('POST /info error:', error);
-    res.status(500).json({ 
-      message: 'Failed to create info', 
-      error: error.message 
-    });
+    res.status(500).json({ message: 'Failed to create info', error: error.message });
   }
 });
 
-// UPDATE
 router.put('/:id', protect, admin, async (req, res) => {
   try {
     const info = await Info.findById(req.params.id);
     if (!info) return res.status(404).json({ message: 'Not found' });
 
-    const { title, description, region, eligibility, benefits, contactInfo, address, operatingHours } = req.body;
+    const { title, description, region, website, eligibility, benefits, contactInfo, address, operatingHours } = req.body;
 
     info.title = title?.trim() || info.title;
     info.description = description?.trim() || info.description;
     info.region = region || info.region;
+    info.website = website?.trim() || info.website;
 
     if (info.type === 'Scheme') {
       info.eligibility = eligibility?.trim() || info.eligibility;
@@ -73,17 +76,20 @@ router.put('/:id', protect, admin, async (req, res) => {
     const updated = await info.save();
     res.json(updated);
   } catch (error) {
+    console.error('PUT /info error:', error);
     res.status(500).json({ message: 'Update failed' });
   }
 });
 
-// DELETE
 router.delete('/:id', protect, admin, async (req, res) => {
   try {
-    const info = await Info.findByIdAndDelete(req.params.id);
+    const info = await Info.findById(req.params.id);
     if (!info) return res.status(404).json({ message: 'Not found' });
-    res.json({ message: 'Deleted' });
+
+    await Info.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Deleted successfully' });
   } catch (error) {
+    console.error('DELETE /info error:', error);
     res.status(500).json({ message: 'Delete failed' });
   }
 });

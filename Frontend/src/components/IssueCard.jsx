@@ -1,22 +1,19 @@
-// src/components/IssueCard.jsx
+// src/components/IssueCard.jsx — FINAL & FULLY WORKING
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Camera, Eye, X, Trash2, AlertCircle } from 'lucide-react';
+import { MapPin, Camera, X, Trash2, Clock, CheckCircle, User, Phone, Mail } from 'lucide-react';
 import { API_URL } from '../App';
 
-function IssueCard({ issue, user, isAdmin = false, refresh, notify }) {
+function IssueCard({ issue, user, isAdmin = false, notify, refresh }) {
   const [showModal, setShowModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [updating, setUpdating] = useState(false);
 
-  // Check if current user is the owner of the complaint
-  const isOwner = user && issue.user && (
-    issue.user._id === user._id || 
-    (typeof issue.user === 'object' && issue.user._id === user._id)
-  );
+  const isOwner = user && issue.user && user._id === issue.user._id;
 
-  // ADMIN: Change status function
-  const handleStatusChange = async (newStatus) => {
+  // ADMIN: Change Status
+  const updateStatus = async (newStatus) => {
+    if (updating) return;
     setUpdating(true);
     try {
       const res = await fetch(`${API_URL}/issues/${issue._id}/status`, {
@@ -30,14 +27,13 @@ function IssueCard({ issue, user, isAdmin = false, refresh, notify }) {
 
       if (res.ok) {
         notify(`Status updated to ${newStatus}`, 'success');
-        setShowModal(false);
         if (refresh) refresh();
+        setShowModal(false);
       } else {
-        const err = await res.json();
-        notify(err.message || 'Update failed', 'error');
+        notify('Failed to update status', 'error');
       }
     } catch (err) {
-      notify('Connection error', 'error');
+      notify('Network error', 'error');
     } finally {
       setUpdating(false);
     }
@@ -53,11 +49,11 @@ function IssueCard({ issue, user, isAdmin = false, refresh, notify }) {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       if (res.ok) {
-        notify('Complaint deleted successfully');
+        notify('Complaint deleted', 'success');
         setShowModal(false);
         if (refresh) refresh();
       } else {
-        notify('Failed to delete', 'error');
+        notify('Delete failed', 'error');
       }
     } catch {
       notify('Network error', 'error');
@@ -66,154 +62,173 @@ function IssueCard({ issue, user, isAdmin = false, refresh, notify }) {
     }
   };
 
-  const statusColors = {
-    'Pending': 'bg-red-100 text-red-700',
+  const statusColor = {
+    Pending: 'bg-red-100 text-red-700',
     'In Progress': 'bg-yellow-100 text-yellow-700',
-    'Resolved': 'bg-green-100 text-green-700',
-    'Rejected': 'bg-gray-100 text-gray-700',
-  };
+    Resolved: 'bg-green-100 text-green-700',
+  }[issue.status] || 'bg-gray-100 text-gray-700';
 
   return (
     <>
-      {/* Card */}
+      {/* CARD */}
       <motion.div
         onClick={() => setShowModal(true)}
-        whileHover={{ y: -8 }}
-        className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all cursor-pointer border border-gray-100 overflow-hidden"
+        whileHover={{ y: -10, scale: 1.02 }}
+        className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all cursor-pointer border border-slate-200 overflow-hidden"
       >
-        <div className="h-48 relative">
+        <div className="h-56 relative">
           {issue.imageUrl ? (
             <img src={issue.imageUrl} alt="Issue" className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-              <Camera size={48} className="text-gray-400" />
+              <Camera size={60} className="text-gray-400" />
             </div>
           )}
-          <div className={`absolute top-3 right-3 px-4 py-2 rounded-full text-xs font-bold ${statusColors[issue.status] || 'bg-gray-100'}`}>
+          <div className={`absolute top-4 right-4 px-5 py-2 rounded-full font-bold text-sm ${statusColor}`}>
             {issue.status}
           </div>
         </div>
 
-        <div className="p-5">
-          <div className="flex justify-between items-center mb-3">
-            <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold">
+        <div className="p-8">
+          <div className="flex justify-between items-start mb-4">
+            <span className="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full text-sm font-bold">
               {issue.category}
             </span>
-            <span className="text-xs text-gray-500">
+            <span className="text-sm text-gray-500">
               {new Date(issue.createdAt).toLocaleDateString('en-IN')}
             </span>
           </div>
-          <h3 className="font-bold text-lg text-gray-800 line-clamp-2">{issue.title}</h3>
-          <p className="text-gray-600 text-sm mt-2 line-clamp-2">{issue.description}</p>
-          <div className="flex items-center gap-2 text-xs text-gray-500 mt-4">
-            <MapPin size={14} className="text-indigo-600" />
+
+          <h3 className="text-2xl font-bold text-slate-800 mb-3 line-clamp-2">{issue.title}</h3>
+          <p className="text-slate-600 text-base line-clamp-3 mb-6">{issue.description}</p>
+
+          <div className="flex items-center gap-3 text-sm text-gray-700">
+            <User size={18} />
+            <span className="font-medium">By: {issue.user?.name || 'Citizen'}</span>
+          </div>
+
+          <div className="flex items-center gap-2 text-sm text-gray-500 mt-3">
+            <MapPin size={16} className="text-indigo-600" />
             <span>{issue.location?.address || 'Location captured'}</span>
           </div>
         </div>
       </motion.div>
 
-      {/* Modal */}
+      {/* MODAL */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-3xl max-w-5xl w-full max-h-[92vh] overflow-y-auto shadow-2xl"
+            className="bg-white rounded-3xl max-w-5xl w-full max-h-[92vh] overflow-y-auto shadow-3xl"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setShowModal(false)}
               className="absolute top-6 right-6 p-3 bg-gray-100 rounded-full hover:bg-red-100 transition"
             >
-              <X size={28} className="text-red-600" />
+              <X size={32} className="text-red-600" />
             </button>
 
-            <div className="grid md:grid-cols-2">
+            <div className="grid md:grid-cols-2 gap-10 p-10">
               {/* Image */}
-              <div className="h-96 md:h-full">
+              <div>
                 {issue.imageUrl ? (
-                  <img src={issue.imageUrl} alt="Complaint" className="w-full h-full object-cover rounded-t-3xl md:rounded-l-3xl" />
+                  <img src={issue.imageUrl} alt="Issue" className="w-full rounded-3xl shadow-lg" />
                 ) : (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-t-3xl md:rounded-l-3xl">
-                    <Camera size={80} className="text-gray-400" />
+                  <div className="bg-gray-200 h-96 rounded-3xl flex items-center justify-center">
+                    <Camera size={100} className="text-gray-400" />
                   </div>
                 )}
               </div>
 
               {/* Details */}
-              <div className="p-10 space-y-8">
+              <div className="space-y-8">
                 <div>
-                  <div className="flex items-center gap-4 mb-4">
-                    <span className={`px-5 py-2 rounded-full font-bold text-sm ${statusColors[issue.status]}`}>
-                      {issue.status}
-                    </span>
-                    <span className="text-gray-500">
-                      {new Date(issue.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </span>
-                  </div>
-                  <h2 className="text-4xl font-black text-gray-800">{issue.title}</h2>
-                  <p className="text-indigo-600 font-bold text-lg mt-2">{issue.category}</p>
+                  <span className={`px-6 py-3 rounded-full font-bold text-lg ${statusColor}`}>
+                    {issue.status}
+                  </span>
+                  <h2 className="text-5xl font-black text-slate-800 mt-6">{issue.title}</h2>
+                  <p className="text-2xl font-bold text-indigo-600 mt-3">{issue.category}</p>
                 </div>
 
-                <div className="bg-gray-50 p-6 rounded-2xl">
-                  <h4 className="font-bold text-gray-700 mb-3">Description</h4>
-                  <p className="text-gray-700">{issue.description}</p>
-                </div>
-
-                <div className="bg-gray-50 p-6 rounded-2xl">
-                  <h4 className="font-bold text-gray-700 mb-3">Location</h4>
-                  <p className="text-gray-700 flex items-start gap-3">
-                    <MapPin className="text-indigo-600 mt-1" />
-                    {issue.location?.address || 'GPS Location Captured'}
-                  </p>
-                </div>
-
-                {/* Citizen: Delete Button */}
-                {!isAdmin && isOwner && issue.status !== 'Resolved' && (
-                  <div className="pt-6 border-t">
-                    <button
-                      onClick={handleDelete}
-                      disabled={deleting}
-                      className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-70 text-white py-5 rounded-2xl font-bold flex items-center justify-center gap-3"
-                    >
-                      <Trash2 size={22} />
-                      {deleting ? 'Deleting...' : 'Delete This Complaint'}
-                    </button>
-                  </div>
-                )}
-
-                {/* Resolved Auto-Delete Message */}
-                {issue.status === 'Resolved' && (
-                  <div className="bg-green-50 border-2 border-green-300 rounded-2xl p-6 text-center">
-                    <AlertCircle className="mx-auto mb-4 text-green-600" size={48} />
-                    <p className="text-green-800 font-bold text-xl">Complaint Resolved!</p>
-                    <p className="text-green-700 mt-2">Will be auto-deleted in 24 hours.</p>
-                  </div>
-                )}
-
-                {/* Admin Actions */}
-                {isAdmin && issue.status !== 'Resolved' && (
-                  <div className="pt-6 border-t">
-                    <h4 className="font-bold text-gray-700 mb-4">Admin Actions</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      {issue.status === 'Pending' && (
-                        <button
-                          onClick={() => handleStatusChange('In Progress')}
-                          disabled={updating}
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold disabled:opacity-70"
-                        >
-                          Start Work
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleStatusChange('Resolved')}
-                        disabled={updating}
-                        className="bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold disabled:opacity-70"
-                      >
-                        Mark Resolved
-                      </button>
+                {/* Reporter Info */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-8 rounded-3xl border border-blue-200">
+                  <h3 className="text-mb-2 text-2xl font-black text-[#0d1b3e] mb-6">Reported By</h3>
+                  <div className="space-y-4 text-lg">
+                    <div className="flex items-center gap-4">
+                      <User size={28} className="text-blue-700" />
+                      <span className="font-bold">{issue.user?.name || 'Anonymous'}</span>
                     </div>
+                    {isAdmin && issue.user?.phone && (
+                      <div className="flex items-center gap-4">
+                        <Phone size={28} className="text-green-600" />
+                        <span>{issue.user.phone}</span>
+                      </div>
+                    )}
+                    {isAdmin && issue.user?.email && (
+                      <div className="flex items-center gap-4">
+                        <Mail size={28} className="text-purple-600" />
+                        <span>{issue.user.email}</span>
+                      </div>
+                    )}
                   </div>
+                </div>
+
+                {/* Description */}
+                <div className="bg-gray-50 p-8 rounded-3xl">
+                  <h4 className="text-2xl font-bold text-slate-800 mb-4">Full Description</h4>
+                  <p className="text-lg text-slate-700 leading-relaxed">{issue.description}</p>
+                </div>
+
+                {/* Location */}
+                <div className="bg-gray-50 p-8 rounded-3xl flex items-start gap-5">
+                  <MapPin size={36} className="text-indigo-600 flex-shrink-0 mt-1" />
+                  <div>
+                    <h4 className="text-2xl font-bold text-slate-800 mb-3">Location</h4>
+                    <p className="text-lg text-slate-700">
+                      {issue.location?.address || 'GPS coordinates captured'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* ADMIN ACTION BUTTONS */}
+                {isAdmin && issue.status !== 'Resolved' && (
+                  <div className="flex gap-6 pt-6">
+                    {issue.status === 'Pending' && (
+                      <button
+                        onClick={() => updateStatus('In Progress')}
+                        disabled={updating}
+                        className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white py-5 rounded-2xl font-bold text-xl flex items-center justify-center gap-4 transition transform hover:scale-105"
+                      >
+                        <Clock size={32} />
+                        Accept & Start Work
+                      </button>
+                    )}
+
+                    {issue.status === 'In Progress' && (
+                      <button
+                        onClick={() => updateStatus('Resolved')}
+                        disabled={updating}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white py-5 rounded-2xl font-bold text-xl flex items-center justify-center gap-4 transition transform hover:scale-105"
+                      >
+                        <CheckCircle size={32} />
+                        Mark as Resolved
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* CITIZEN DELETE BUTTON */}
+                {!isAdmin && isOwner && issue.status !== 'Resolved' && (
+                  <button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white py-5 rounded-2xl font-bold text-xl flex items-center justify-center gap-4 transition"
+                  >
+                    <Trash2 size={28} />
+                    {deleting ? 'Deleting...' : 'Delete This Complaint'}
+                  </button>
                 )}
               </div>
             </div>
