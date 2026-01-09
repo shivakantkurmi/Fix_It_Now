@@ -1,32 +1,53 @@
 // src/components/LandingPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { 
-  FilePlus, Share2, Settings, CheckCircle, ChevronRight, 
-  ShieldCheck, Zap, Users, MapPin, ArrowRight, Sparkles 
+import {
+  FilePlus, Share2, Settings, CheckCircle, ChevronRight,
+  ShieldCheck, Zap, Users, MapPin, ArrowRight, Sparkles
 } from 'lucide-react';
 
 export default function LandingPage({ setView }) {
+  const heroRef = useRef(null);
+
+  // Global scroll for background orbs
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 500], [0, 150]);
   const y2 = useTransform(scrollY, [0, 500], [0, -100]);
-  const opacity = useTransform(scrollY, [0, 300], [1, 0.3]);
+
+  // Section-based scroll for Hero fade
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"]
+  });
+
+  // Fade ONLY when hero is about to leave viewport
+  const opacity = useTransform(scrollYProgress, [0.7, 1], [1, 0.3]);
 
   return (
     <>
-      {/* Full Screen Dark Background - ZERO WHITE GAP */}
       <div className="min-h-screen bg-[#0a0e1a] text-white overflow-x-hidden">
 
         {/* Floating Orbs Background */}
         <div className="fixed inset-0 pointer-events-none">
-          <motion.div style={{ y: y1 }} className="absolute top-20 -left-40 w-96 h-96 bg-gradient-to-r from-yellow-500/20 to-orange-500/10 rounded-full blur-3xl" />
-          <motion.div style={{ y: y2 }} className="absolute bottom-0 -right-40 w-80 h-80 bg-gradient-to-l from-indigo-600/20 to-purple-600/10 rounded-full blur-3xl" />
-          <motion.div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-radial from-transparent via-[#0d1b3e]/20 to-transparent" />
+          <motion.div
+            style={{ y: y1 }}
+            className="absolute top-20 -left-40 w-96 h-96 bg-gradient-to-r from-yellow-500/20 to-orange-500/10 rounded-full blur-3xl"
+          />
+          <motion.div
+            style={{ y: y2 }}
+            className="absolute bottom-0 -right-40 w-80 h-80 bg-gradient-to-l from-indigo-600/20 to-purple-600/10 rounded-full blur-3xl"
+          />
+          <motion.div className="absolute inset-0 bg-gradient-radial from-transparent via-[#0d1b3e]/20 to-transparent" />
         </div>
 
-        {/* Hero Section */}
-        <motion.section style={{ opacity }} className="relative z-10 min-h-screen flex items-center justify-center px-6 pt-20">
+        {/* ================= HERO SECTION ================= */}
+        <motion.section
+          ref={heroRef}
+          style={{ opacity }}
+          className="relative z-10 min-h-screen flex items-center justify-center px-6 pt-20"
+        >
           <div className="container mx-auto text-center">
+
             {/* Official Badge */}
             <motion.div
               initial={{ y: -50, opacity: 0 }}
@@ -52,6 +73,7 @@ export default function LandingPage({ setView }) {
               <span className="block">One Click at a Time</span>
             </motion.h1>
 
+            {/* Subtitle */}
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -75,6 +97,7 @@ export default function LandingPage({ setView }) {
                 ENTER PORTAL NOW
                 <ArrowRight className="group-hover:translate-x-2 transition" size={32} />
               </button>
+
               <button
                 onClick={() => setView('signup')}
                 className="px-16 py-7 bg-white/10 backdrop-blur-xl border-2 border-white/30 rounded-full text-xl font-bold hover:bg-white/20 transition-all duration-300"
@@ -82,10 +105,11 @@ export default function LandingPage({ setView }) {
                 Register Free
               </button>
             </motion.div>
+
           </div>
         </motion.section>
 
-        {/* 4-Step Process - 3D Floating Cards */}
+        {/* ================= HOW IT WORKS ================= */}
         <section className="relative py-32">
           <div className="container mx-auto px-6">
             <div className="text-center mb-20">
@@ -126,7 +150,7 @@ export default function LandingPage({ setView }) {
           </div>
         </section>
 
-        {/* Stats Section */}
+        {/* ================= STATS ================= */}
         <section className="py-24 bg-gradient-to-b from-transparent via-[#0d1b3e]/50 to-transparent">
           <div className="container mx-auto px-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
@@ -151,7 +175,7 @@ export default function LandingPage({ setView }) {
           </div>
         </section>
 
-        {/* Final CTA */}
+        {/* ================= FINAL CTA ================= */}
         <section className="py-32 text-center">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -170,6 +194,7 @@ export default function LandingPage({ setView }) {
             </button>
           </motion.div>
         </section>
+
       </div>
     </>
   );
