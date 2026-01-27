@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster, toast } from 'react-hot-toast';
@@ -25,7 +24,6 @@ export default function App() {
     });
   };
 
-  // Load user from localStorage
   useEffect(() => {
     const stored = localStorage.getItem('userInfo');
     if (!stored) {
@@ -46,7 +44,6 @@ export default function App() {
     setLoading(false);
   }, []);
 
-  // Verify token on load
   useEffect(() => {
     if (!user?.token) return;
 
@@ -126,7 +123,7 @@ export default function App() {
         </motion.main>
       </AnimatePresence>
 
-      <Footer setView={setCurrentView} />
+      <Footer setView={setCurrentView} user={user} />
       <Toaster position="top-center" />
     </div>
   );
