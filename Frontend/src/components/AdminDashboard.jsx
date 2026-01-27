@@ -9,6 +9,10 @@ function AdminDashboard({ user, setView, notify }) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   const fetchData = async () => {
     if (!user?.token) return;
     setLoading(true);
@@ -41,6 +45,11 @@ function AdminDashboard({ user, setView, notify }) {
   const handleIssueUpdate = () => {
     fetchData();
   };
+
+  // Pagination logic
+  const totalPages = Math.ceil(issues.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentIssues = issues.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-10 space-y-8 sm:space-y-10">
@@ -90,29 +99,50 @@ function AdminDashboard({ user, setView, notify }) {
           <div className="text-center py-12 sm:py-20">
             <div className="inline-block animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-4 border-[#0d1b3e] border-t-transparent"></div>
           </div>
-        ) : issues.length === 0 ? (
+        ) : currentIssues.length === 0 ? (
           <p className="text-center text-slate-500 py-12 sm:py-20 text-sm sm:text-base">
             No issues reported yet.
           </p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8">
-            {issues.map((issue, index) => (
-              <motion.div
-                key={issue._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <IssueCard
-                  issue={issue}
-                  user={user}
-                  isAdmin={true}
-                  notify={notify}
-                  refresh={handleIssueUpdate}
-                />
-              </motion.div>
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8">
+              {currentIssues.map((issue, index) => (
+                <motion.div
+                  key={issue._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <IssueCard
+                    issue={issue}
+                    user={user}
+                    isAdmin={true}
+                    notify={notify}
+                    refresh={handleIssueUpdate}
+                  />
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-8 gap-2 flex-wrap">
+                {[...Array(totalPages)].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`px-4 py-2 rounded-full text-sm font-bold border transition ${
+                      currentPage === i + 1
+                        ? 'bg-[#0d1b3e] text-white border-[#0d1b3e]'
+                        : 'bg-white text-slate-500 border-slate-200 hover:border-[#0d1b3e]'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

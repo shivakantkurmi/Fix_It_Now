@@ -1,4 +1,4 @@
-// src/components/CitizenDashboard.jsx — AUTO REFRESH AFTER DELETE & CHANGES
+// src/components/CitizenDashboard.jsx — AUTO REFRESH AFTER DELETE & CHANGES + PAGINATION
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import IssueCard from './IssueCard';
@@ -10,6 +10,10 @@ function CitizenDashboard({ user, setView, notify }) {
   const [myIssues, setMyIssues] = useState([]);
   const [activeTab, setActiveTab] = useState('all');
   const [loading, setLoading] = useState(true);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const refreshIssues = async () => {
     setLoading(true);
@@ -40,7 +44,16 @@ function CitizenDashboard({ user, setView, notify }) {
     refreshIssues();
   }, [user.token]);
 
+  useEffect(() => {
+    setCurrentPage(1); // reset page when tab changes
+  }, [activeTab]);
+
   const displayedIssues = activeTab === 'all' ? issues : myIssues;
+
+  // Pagination logic
+  const totalPages = Math.ceil(displayedIssues.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentIssues = displayedIssues.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-10 space-y-8 sm:space-y-10">
@@ -95,35 +108,56 @@ function CitizenDashboard({ user, setView, notify }) {
           <div className="inline-block animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-4 border-[#0d1b3e] border-t-transparent"></div>
           <p className="mt-4 text-slate-500 text-sm sm:text-base">Loading complaints...</p>
         </div>
-      ) : displayedIssues.length === 0 ? (
+      ) : currentIssues.length === 0 ? (
         <div className="col-span-full text-center py-12 sm:py-20 bg-white rounded-xl border-2 border-dashed border-slate-200 text-slate-400 font-medium text-sm sm:text-base">
           {activeTab === 'my' ? 'You have not lodged any complaints yet.' : 'No complaints reported in your area.'}
         </div>
       ) : (
-        <motion.div 
-          key={activeTab}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8"
-        >
-          {displayedIssues.map(issue => (
-            <motion.div
-              key={issue._id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.3 }}
-            >
-              <IssueCard 
-                issue={issue} 
-                user={user} 
-                notify={notify} 
-                refresh={refreshIssues}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
+        <>
+          <motion.div 
+            key={activeTab}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8"
+          >
+            {currentIssues.map(issue => (
+              <motion.div
+                key={issue._id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <IssueCard 
+                  issue={issue} 
+                  user={user} 
+                  notify={notify} 
+                  refresh={refreshIssues}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-8 gap-2 flex-wrap">
+              {[...Array(totalPages)].map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`px-4 py-2 rounded-full text-sm font-bold border transition ${
+                    currentPage === i + 1
+                      ? 'bg-[#0d1b3e] text-white border-[#0d1b3e]'
+                      : 'bg-white text-slate-500 border-slate-200 hover:border-[#0d1b3e]'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
