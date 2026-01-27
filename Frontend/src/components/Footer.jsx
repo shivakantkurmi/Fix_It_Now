@@ -25,8 +25,8 @@ function Footer({ setView, user }) {
           <div className="flex gap-3 sm:gap-4">
             <SocialIcon icon={Facebook} link="https://facebook.com" />
             <SocialIcon icon={Twitter} link="https://twitter.com" />
-            <SocialIcon icon={Instagram} link="https://instagram.com" />
-            <SocialIcon icon={Linkedin} link="https://linkedin.com" />
+            <SocialIcon icon={Instagram} link="https://www.instagram.com/its_me_s.k._2005/" />
+            <SocialIcon icon={Linkedin} link="https://linkedin.com/in/shivakant-kurmi-15339428a" />
           </div>
         </div>
 
