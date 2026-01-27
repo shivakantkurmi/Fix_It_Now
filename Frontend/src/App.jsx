@@ -11,9 +11,7 @@ import ReportIssue from './components/ReportIssue';
 import AdminDashboard from './components/AdminDashboard';
 import InfoSchemes from './components/InfoSchemes';
 
-
-
-const BASE_URL=import.meta.env.VITE_URL;
+const BASE_URL = import.meta.env.VITE_URL;
 export const API_URL = `${BASE_URL}/api`;
 
 export default function App() {
@@ -21,26 +19,58 @@ export default function App() {
   const [currentView, setCurrentView] = useState('landing');
   const [loading, setLoading] = useState(true);
 
+  const notify = (msg, type = 'success') => {
+    toast[type](msg, {
+      style: { borderRadius: '12px', background: '#333', color: '#fff', fontWeight: 'bold' }
+    });
+  };
+
+  // Load user from localStorage
   useEffect(() => {
     const stored = localStorage.getItem('userInfo');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setUser(parsed);
-        setCurrentView(parsed.role === 'admin' ? 'admin' : 'dashboard');
-      } catch {
-        localStorage.removeItem('userInfo');
-      }
+    if (!stored) {
+      setCurrentView('landing');
+      setLoading(false);
+      return;
     }
+
+    try {
+      const parsed = JSON.parse(stored);
+      setUser(parsed);
+      setCurrentView(parsed.role === 'admin' ? 'admin' : 'dashboard');
+    } catch {
+      localStorage.removeItem('userInfo');
+      setCurrentView('landing');
+    }
+
     setLoading(false);
   }, []);
 
-  const notify = (msg, type = 'success') => {
-    toast[type](msg, {
-      style: { borderRadius: '12px', background: '#333', color: '#fff', fontWeight: 'bold' },
-      icon: type === 'error' ? 'Error' : 'Success'
-    });
-  };
+  // Verify token on load
+  useEffect(() => {
+    if (!user?.token) return;
+
+    const verifyToken = async () => {
+      try {
+        const res = await fetch(`${API_URL}/auth/verify`, {
+          headers: { Authorization: `Bearer ${user.token}` }
+        });
+
+        if (res.status === 401) {
+          localStorage.removeItem('userInfo');
+          setUser(null);
+          setCurrentView('landing');
+          notify('Session expired. Please login again.', 'error');
+        }
+      } catch {
+        localStorage.removeItem('userInfo');
+        setUser(null);
+        setCurrentView('landing');
+      }
+    };
+
+    verifyToken();
+  }, [user]);
 
   const handleLogout = () => {
     localStorage.removeItem('userInfo');
@@ -52,10 +82,10 @@ export default function App() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0d1b3e] flex items-center justify-center">
-        <motion.div 
-          animate={{ rotate: 360 }} 
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }} 
-          className="w-20 h-20 border-8 border-white/30 border-t-yellow-400 rounded-full" 
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          className="w-20 h-20 border-8 border-white/30 border-t-yellow-400 rounded-full"
         />
       </div>
     );
@@ -74,35 +104,30 @@ export default function App() {
   const CurrentView = views[currentView] || views.landing;
 
   return (
-    <>
-      {/* FULL NAVY BLUE BACKGROUND - NO WHITE SPACE ANYWHERE */}
-      <div className="min-h-screen bg-gradient-to-br from-slate via-indigo-50 to-purple-50 font-sans">
-        
-        <Navbar user={user} setView={setCurrentView} onLogout={handleLogout} currentView={currentView} />
-        
-        {/* Optional: Official Yellow Ticker */}
-        {!user && currentView === 'landing' && (
-          <div className="bg-[#0a0e1a] text-yellow-400 text-center py-2 text-xs font-bold border-b border-yellow-500/30">
-            OFFICIAL CITIZEN GRIEVANCE REDRESSAL PORTAL
-          </div>
-        )}
+    <div className="min-h-screen bg-gradient-to-br from-slate via-indigo-50 to-purple-50 font-sans">
+      <Navbar user={user} setView={setCurrentView} onLogout={handleLogout} currentView={currentView} />
 
-        <AnimatePresence mode="wait">
-          <motion.main
-            key={currentView}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4 }}
-            className="flex-grow"  // Removed pt-20 pb-10 → now controlled by each page
-          >
-            <CurrentView />
-          </motion.main>
-        </AnimatePresence>
+      {!user && currentView === 'landing' && (
+        <div className="bg-[#0a0e1a] text-yellow-400 text-center py-2 text-xs font-bold border-b border-yellow-500/30">
+          OFFICIAL CITIZEN GRIEVANCE REDRESSAL PORTAL
+        </div>
+      )}
 
-        <Footer />
-        <Toaster position="top-center" />
-      </div>
-    </>
+      <AnimatePresence mode="wait">
+        <motion.main
+          key={currentView}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.4 }}
+          className="flex-grow"
+        >
+          <CurrentView />
+        </motion.main>
+      </AnimatePresence>
+
+      <Footer setView={setCurrentView} />
+      <Toaster position="top-center" />
+    </div>
   );
 }

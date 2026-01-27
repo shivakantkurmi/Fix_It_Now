@@ -1,4 +1,4 @@
-// src/components/ReportIssue.jsx
+// src/components/ReportIssue.jsx — RESPONSIVE
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Navigation, UploadCloud, X } from 'lucide-react';
@@ -68,22 +68,23 @@ export default function ReportIssue({ user, setView, notify }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-8 my-8"
+      className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 my-4 sm:my-8"
     >
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-800">Report an Issue</h2>
+        <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">Report an Issue</h2>
         <button onClick={() => setView('dashboard')} className="text-gray-500 hover:text-gray-700">
           <X size={24} />
         </button>
       </div>
+
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
             <select 
               value={formData.category} 
               onChange={(e) => setFormData({...formData, category: e.target.value})}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:border-indigo-500 outline-none"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:border-indigo-500 outline-none text-sm sm:text-base"
             >
               <option>Pothole</option>
               <option>Garbage</option>
@@ -92,53 +93,58 @@ export default function ReportIssue({ user, setView, notify }) {
               <option>Other</option>
             </select>
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
             <button 
               type="button" 
               onClick={handleLocation} 
               disabled={locating}
-              className={`w-full p-3 rounded-lg flex items-center justify-center gap-2 ${locating ? 'bg-gray-200' : 'bg-indigo-500 text-white hover:bg-indigo-600'}`}
+              className={`w-full p-3 rounded-lg flex items-center justify-center gap-2 text-sm sm:text-base ${locating ? 'bg-gray-200' : 'bg-indigo-500 text-white hover:bg-indigo-600'}`}
             >
               <Navigation size={18} />
               {locating ? 'Locating...' : 'Capture Location'}
             </button>
-            {formData.location.address && <p className="mt-2 text-sm text-gray-600">{formData.location.address}</p>}
+            {formData.location.address && <p className="mt-2 text-xs sm:text-sm text-gray-600 break-words">{formData.location.address}</p>}
           </div>
         </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
           <input 
             type="text" 
             value={formData.title} 
             onChange={(e) => setFormData({...formData, title: e.target.value})}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:border-indigo-500 outline-none"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:border-indigo-500 outline-none text-sm sm:text-base"
             required 
           />
         </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
           <textarea 
             value={formData.description} 
             onChange={(e) => setFormData({...formData, description: e.target.value})}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:border-indigo-500 outline-none h-32"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:border-indigo-500 outline-none h-28 sm:h-32 text-sm sm:text-base"
             required 
           />
         </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Upload Image (optional)</label>
           <input 
             type="file" 
             onChange={handleImageUpload} 
             accept="image/*"
-            className="w-full p-3 border border-gray-300 rounded-lg"
+            className="w-full p-3 border border-gray-300 rounded-lg text-sm"
           />
-          {preview && <img src={preview} alt="Preview" className="mt-4 rounded-lg max-h-48 object-contain" />}
+          {preview && <img src={preview} alt="Preview" className="mt-4 rounded-lg max-h-48 object-contain mx-auto" />}
         </div>
+
         <button 
           type="submit" 
           disabled={submitting}
-          className="w-full p-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:bg-gray-300"
+          className="w-full p-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:bg-gray-300 text-sm sm:text-base font-semibold"
         >
           {submitting ? 'Submitting...' : 'Submit'}
         </button>
