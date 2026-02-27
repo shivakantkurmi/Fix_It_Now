@@ -14,17 +14,16 @@ const seedSuperAdmin = async () => {
     const existing = await User.findOne({ email });
 
     if (existing) {
-      // User already exists — ensure they have the superadmin role
-      if (existing.role !== 'superadmin') {
-        existing.role = 'superadmin';
-        await existing.save();
-        console.log(`Super admin role updated for existing user: ${email}`);
-      }
-      return;
+      // Always sync name, role, and password from .env on every restart
+      existing.role = 'superadmin';
+      existing.name = name;
+      existing.password = password; // pre-save hook will hash it
+      await existing.save();
+      console.log(`Super admin synced from .env: ${email}`);
+    } else {
+      await User.create({ name, email, password, role: 'superadmin' });
+      console.log(`Super admin created: ${email}`);
     }
-
-    await User.create({ name, email, password, role: 'superadmin' });
-    console.log(`Super admin seeded: ${email}`);
   } catch (err) {
     console.error('Super admin seed failed:', err.message);
   }
