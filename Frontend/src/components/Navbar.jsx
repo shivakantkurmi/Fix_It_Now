@@ -1,11 +1,22 @@
-// src/components/Navbar.jsx — RESPONSIVE
+// src/components/Navbar.jsx — RESPONSIVE with multilingual support
 import React from 'react';
-import { Globe, LogOut, FileText, PlusCircle } from 'lucide-react';
+import { Globe, LogOut, FileText, PlusCircle, UserCircle } from 'lucide-react';
+import { t } from '../utils/translations';
 
-function Navbar({ user, setView, onLogout, currentView, language, setLanguage }) {
+const LANG_CYCLE = ['en', 'hi', 'mr', 'bn'];
+const LANG_LABELS = { en: 'EN', hi: 'हि', mr: 'म', bn: 'বা' };
+
+function Navbar({ user, setView, onLogout, currentView, language = 'en', setLanguage }) {
   const handleHomeClick = () => {
     if (!user) return setView('landing');
+    if (user.role === 'superadmin') return setView('superadmin');
     return setView(user.role === 'admin' ? 'admin' : 'dashboard');
+  };
+
+  const cycleLanguage = () => {
+    const idx = LANG_CYCLE.indexOf(language);
+    const next = LANG_CYCLE[(idx + 1) % LANG_CYCLE.length];
+    setLanguage(next);
   };
 
   return (
@@ -38,13 +49,14 @@ function Navbar({ user, setView, onLogout, currentView, language, setLanguage })
         {/* Right Section */}
         <div className="flex items-center space-x-3 sm:space-x-6">
 
-          {/* Language Switch */}
+          {/* Language Switch — cycles en → hi → mr → bn → en */}
           <button
-            onClick={() => setLanguage(language === 'en' ? 'hi' : 'en')}
-            className="flex items-center space-x-1 text-slate-300 hover:text-yellow-400 transition font-medium"
+            onClick={cycleLanguage}
+            title="Change Language"
+            className="flex items-center space-x-1 text-slate-300 hover:text-yellow-400 transition font-medium border border-slate-600 rounded-full px-2 py-1 hover:border-yellow-400"
           >
-            <Globe size={18} />
-            <span className="uppercase text-xs sm:text-sm">{language}</span>
+            <Globe size={14} />
+            <span className="text-xs font-bold">{LANG_LABELS[language] || language.toUpperCase()}</span>
           </button>
 
           {user ? (
@@ -58,7 +70,19 @@ function Navbar({ user, setView, onLogout, currentView, language, setLanguage })
                 }`}
               >
                 <FileText size={16} />
-                <span className="hidden sm:inline">Schemes</span>
+                <span className="hidden sm:inline">{t('nav_schemes', language)}</span>
+              </button>
+
+              {/* Profile */}
+              <button
+                onClick={() => setView('profile')}
+                className={`flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-bold uppercase tracking-wide transition ${
+                  currentView === 'profile' ? 'text-yellow-400' : 'text-slate-300 hover:text-white'
+                }`}
+                title={t('nav_profile', language)}
+              >
+                <UserCircle size={16} />
+                <span className="hidden sm:inline">{t('nav_profile', language)}</span>
               </button>
 
               {/* Lodge Complaint */}
@@ -68,7 +92,7 @@ function Navbar({ user, setView, onLogout, currentView, language, setLanguage })
                   className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-slate-900 px-3 sm:px-5 py-1.5 sm:py-2 rounded-full font-bold transition shadow-lg flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
                 >
                   <PlusCircle size={16} />
-                  <span className="hidden sm:inline">Lodge Complaint</span>
+                  <span className="hidden sm:inline">{t('nav_lodge', language)}</span>
                 </button>
               )}
 
@@ -80,7 +104,7 @@ function Navbar({ user, setView, onLogout, currentView, language, setLanguage })
                 </div>
                 <button 
                   onClick={onLogout} 
-                  title="Logout" 
+                  title={t('nav_logout', language)} 
                   className="bg-red-600/20 p-2 rounded-full hover:bg-red-600 transition text-red-200 hover:text-white"
                 >
                   <LogOut size={16} />
@@ -94,13 +118,13 @@ function Navbar({ user, setView, onLogout, currentView, language, setLanguage })
                 onClick={() => setView('login')} 
                 className="text-xs sm:text-sm hover:text-yellow-400 font-bold transition tracking-wide"
               >
-                LOGIN
+                {t('nav_login', language)}
               </button>
               <button 
                 onClick={() => setView('signup')} 
                 className="bg-white text-indigo-900 px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold hover:bg-yellow-400 hover:text-slate-900 transition shadow-lg"
               >
-                REGISTER
+                {t('nav_signup', language)}
               </button>
             </div>
           )}
@@ -111,3 +135,4 @@ function Navbar({ user, setView, onLogout, currentView, language, setLanguage })
 }
 
 export default Navbar;
+

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const { protect } = require('../middleware/auth');
 
 // Generate JWT
 const generateToken = (id) => {
@@ -22,7 +23,7 @@ router.post('/register', async (req, res) => {
       name,
       email,
       password,
-      role: role || 'citizen',
+      role: ['citizen', 'admin'].includes(role) ? role : 'citizen',
       phone,
       languagePreference,
     });
@@ -83,5 +84,52 @@ router.get('/verify', async (req, res) => {
     res.status(401).json({ message: "Invalid token" });
   }
 });
+// @desc  Get current user's profile
+// @route GET /api/auth/profile
+router.get('/profile', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
+// @desc  Update current user's profile
+// @route PUT /api/auth/profile
+router.put('/profile', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const { name, phone, languagePreference, currentPassword, newPassword } = req.body;
+
+    if (name)               user.name = name.trim();
+    if (phone !== undefined && phone !== null) user.phone = String(phone).trim();
+    if (languagePreference) user.languagePreference = languagePreference;
+
+    // Password change - requires current password verification
+    if (newPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({ message: 'Current password is required to set a new password' });
+      }
+      const match = await user.matchPassword(currentPassword);
+      if (!match) return res.status(401).json({ message: 'Current password is incorrect' });
+      user.password = newPassword; // pre-save hook will hash it
+    }
+
+    const updated = await user.save();
+    res.json({
+      _id: updated._id,
+      name: updated.name,
+      email: updated.email,
+      phone: updated.phone,
+      role: updated.role,
+      languagePreference: updated.languagePreference,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 module.exports = router;

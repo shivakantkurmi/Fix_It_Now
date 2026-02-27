@@ -47,7 +47,11 @@ const issueSchema = mongoose.Schema(
       type: String, // Photo of resolved issue
     },
     resolvedAt: {
-      type: Date, // Added for analytics
+      type: Date,
+    },
+    resolvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
     },
     feedback: {
       rating: { type: Number, min: 1, max: 5 },

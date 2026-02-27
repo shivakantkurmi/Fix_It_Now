@@ -1,13 +1,20 @@
-// src/components/IssueCard.jsx — RESPONSIVE FINAL
+// src/components/IssueCard.jsx — RESPONSIVE FINAL + Enhanced Feedback
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Camera, X, Trash2, Clock, CheckCircle, User, Phone, Mail } from 'lucide-react';
+import { MapPin, Camera, X, Trash2, Clock, CheckCircle, User, Phone, Mail, Star, MessageSquare, Send } from 'lucide-react';
 import { API_URL } from '../App';
 
 function IssueCard({ issue, user, isAdmin = false, notify, refresh }) {
   const [showModal, setShowModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [updating, setUpdating] = useState(false);
+
+  // Feedback state
+  const [feedbackRating, setFeedbackRating] = useState(issue.feedback?.rating || 0);
+  const [feedbackComment, setFeedbackComment] = useState(issue.feedback?.comment || '');
+  const [hoverRating, setHoverRating] = useState(0);
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [feedbackDone, setFeedbackDone] = useState(!!issue.feedback?.rating);
 
   const isOwner = user && issue.user && user._id === issue.user._id;
 
@@ -46,11 +53,38 @@ function IssueCard({ issue, user, isAdmin = false, notify, refresh }) {
     finally { setDeleting(false); }
   };
 
+  const submitFeedback = async () => {
+    if (!feedbackRating) { notify('Please select a star rating', 'error'); return; }
+    setSubmittingFeedback(true);
+    try {
+      const res = await fetch(`${API_URL}/issues/${issue._id}/feedback`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user.token}` },
+        body: JSON.stringify({ rating: feedbackRating, comment: feedbackComment }),
+      });
+      if (res.ok) {
+        notify('Thank you for your feedback!');
+        setFeedbackDone(true);
+        refresh && refresh();
+      } else {
+        const d = await res.json();
+        notify(d.message || 'Failed to submit feedback', 'error');
+      }
+    } catch { notify('Network error', 'error'); }
+    finally { setSubmittingFeedback(false); }
+  };
+
   const statusColor = {
     Pending: 'bg-red-100 text-red-700',
     'In Progress': 'bg-yellow-100 text-yellow-700',
     Resolved: 'bg-green-100 text-green-700',
   }[issue.status] || 'bg-gray-100 text-gray-700';
+
+  const priorityMeta = {
+    High:   { color: 'bg-red-600 text-white',    label: '↑ High' },
+    Medium: { color: 'bg-yellow-500 text-white', label: '~ Med' },
+    Low:    { color: 'bg-green-500 text-white',  label: '↓ Low' },
+  }[issue.priority] || { color: 'bg-gray-200 text-gray-600', label: issue.priority || 'Medium' };
 
   return (
     <>
@@ -71,6 +105,11 @@ function IssueCard({ issue, user, isAdmin = false, notify, refresh }) {
           <div className={`absolute top-3 right-3 px-3 sm:px-5 py-1.5 sm:py-2 rounded-full font-bold text-xs sm:text-sm ${statusColor}`}>
             {issue.status}
           </div>
+          {issue.priority && (
+            <div className={`absolute top-3 left-3 px-2 sm:px-3 py-1 rounded-full font-bold text-xs ${priorityMeta.color} shadow`}>
+              {priorityMeta.label}
+            </div>
+          )}
         </div>
 
         <div className="p-4 sm:p-8">
@@ -129,9 +168,16 @@ function IssueCard({ issue, user, isAdmin = false, notify, refresh }) {
               </div>
 
               <div className="space-y-5 sm:space-y-8">
-                <span className={`px-4 py-2 rounded-full font-bold ${statusColor}`}>
-                  {issue.status}
-                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`px-4 py-2 rounded-full font-bold ${statusColor}`}>
+                    {issue.status}
+                  </span>
+                  {issue.priority && (
+                    <span className={`px-4 py-2 rounded-full font-bold text-sm ${priorityMeta.color}`}>
+                      {priorityMeta.label} Priority
+                    </span>
+                  )}
+                </div>
 
                 <h2 className="text-2xl sm:text-4xl font-black">{issue.title}</h2>
                 <p className="text-lg sm:text-xl font-bold text-indigo-600">{issue.category}</p>
@@ -169,6 +215,87 @@ function IssueCard({ issue, user, isAdmin = false, notify, refresh }) {
                   <button onClick={handleDelete} className="w-full bg-red-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">
                     <Trash2 size={18} /> Delete Complaint
                   </button>
+                )}
+
+                {/* ── Feedback Section (Resolved issues, owner only) ── */}
+                {!isAdmin && isOwner && issue.status === 'Resolved' && (
+                  <div className="border border-slate-200 rounded-2xl p-5 bg-slate-50">
+                    <h4 className="font-bold text-slate-800 flex items-center gap-2 mb-3">
+                      <MessageSquare size={16} className="text-indigo-600" />
+                      {feedbackDone ? 'Your Feedback' : 'Rate this Resolution'}
+                    </h4>
+
+                    {feedbackDone ? (
+                      /* Show submitted feedback */
+                      <div>
+                        <div className="flex gap-1 mb-2">
+                          {[1,2,3,4,5].map(s => (
+                            <Star key={s} size={22} className={s <= feedbackRating ? 'text-yellow-400 fill-yellow-400' : 'text-slate-300'} />
+                          ))}
+                        </div>
+                        {feedbackComment && <p className="text-sm text-slate-600 italic">"{feedbackComment}"</p>}
+                        <p className="text-xs text-green-600 font-semibold mt-2 flex items-center gap-1">
+                          <CheckCircle size={13} /> Feedback submitted — thank you!
+                        </p>
+                      </div>
+                    ) : (
+                      /* Feedback form */
+                      <div className="space-y-3">
+                        <div className="flex gap-1">
+                          {[1,2,3,4,5].map(s => (
+                            <button
+                              key={s}
+                              type="button"
+                              onClick={() => setFeedbackRating(s)}
+                              onMouseEnter={() => setHoverRating(s)}
+                              onMouseLeave={() => setHoverRating(0)}
+                              className="transition-transform hover:scale-110"
+                            >
+                              <Star
+                                size={28}
+                                className={s <= (hoverRating || feedbackRating) ? 'text-yellow-400 fill-yellow-400' : 'text-slate-300'}
+                              />
+                            </button>
+                          ))}
+                          {feedbackRating > 0 && (
+                            <span className="ml-2 text-sm text-slate-500 self-center">
+                              {['','Poor','Fair','Good','Very Good','Excellent'][feedbackRating]}
+                            </span>
+                          )}
+                        </div>
+                        <textarea
+                          value={feedbackComment}
+                          onChange={e => setFeedbackComment(e.target.value)}
+                          placeholder="Add a comment (optional)…"
+                          rows={2}
+                          className="w-full p-3 text-sm border border-slate-200 rounded-xl outline-none focus:border-indigo-400 resize-none"
+                        />
+                        <button
+                          onClick={submitFeedback}
+                          disabled={submittingFeedback || !feedbackRating}
+                          className="w-full bg-indigo-600 text-white py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-50 hover:bg-indigo-700 transition text-sm"
+                        >
+                          <Send size={15} />
+                          {submittingFeedback ? 'Submitting…' : 'Submit Feedback'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Show feedback to admin */}
+                {isAdmin && issue.feedback?.rating && (
+                  <div className="border border-green-200 rounded-2xl p-4 bg-green-50">
+                    <h4 className="font-bold text-green-800 text-sm flex items-center gap-2 mb-2">
+                      <Star size={14} className="fill-yellow-400 text-yellow-400" /> Citizen Feedback
+                    </h4>
+                    <div className="flex gap-1 mb-1">
+                      {[1,2,3,4,5].map(s => (
+                        <Star key={s} size={16} className={s <= issue.feedback.rating ? 'text-yellow-400 fill-yellow-400' : 'text-slate-300'} />
+                      ))}
+                    </div>
+                    {issue.feedback.comment && <p className="text-xs text-slate-600 italic">"{issue.feedback.comment}"</p>}
+                  </div>
                 )}
               </div>
             </div>

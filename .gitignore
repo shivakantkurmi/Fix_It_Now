@@ -1,0 +1,60 @@
+# Root-level .gitignore — covers the whole monorepo
+# Each sub-project (Backend/, Frontend/) also has its own .gitignore
+
+# ── Environment secrets — NEVER commit these ────────────────────────────────
+.env
+.env.*
+!.env.example        # allow example/template files
+.env.local
+.env.*.local
+
+# ── SSL / TLS certificates & private keys ───────────────────────────────────
+*.pem
+*.key
+*.crt
+*.cert
+*.cer
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# ── SSH keys ────────────────────────────────────────────────────────────────
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+id_dsa
+id_ecdsa
+*.ppk
+
+# ── Google / Firebase service account credentials ───────────────────────────
+google-services.json
+GoogleService-Info.plist
+service-account*.json
+firebase-adminsdk*.json
+credentials.json
+client_secret*.json
+
+# ── Generic secret files ─────────────────────────────────────────────────────
+secrets/
+secrets.*
+*.secret
+*.secrets
+auth.json
+.htpasswd
+
+# ── Package manager auth tokens ──────────────────────────────────────────────
+.npmrc
+.yarnrc
+.yarnrc.yml
+
+# ── OS / editor noise ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# ── Vercel deployment metadata ───────────────────────────────────────────────
+.vercel/

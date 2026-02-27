@@ -9,9 +9,13 @@ const authRoutes = require('./routes/authRoutes');
 const issueRoutes = require('./routes/issueRoutes');
 const infoRoutes = require('./routes/infoRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const aiRoutes = require('./routes/aiRoutes');
+const superadminRoutes = require('./routes/superadminRoutes');
+const cleanupResolvedIssues = require('./utils/Cleanup');
+const seedSuperAdmin = require('./utils/seedSuperAdmin');
 
 dotenv.config();
-connectDB();
+connectDB().then(() => seedSuperAdmin().catch(console.error));
 
 const app = express();
 
@@ -31,6 +35,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/issues', issueRoutes);
 app.use('/api/info', infoRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/superadmin', superadminRoutes);
 
 // Test route
 app.get('/', (req, res) => {
@@ -44,7 +50,6 @@ app.get('/', (req, res) => {
 });
 
 // Auto cleanup: Delete resolved complaints after 24 hours
-const cleanupResolvedIssues = require('./utils/Cleanup');
 
 // Run every 24 hours
 setInterval(cleanupResolvedIssues, 24 * 60 * 60 * 1000);

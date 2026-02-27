@@ -8,7 +8,11 @@ import AuthPage from './components/AuthPage';
 import CitizenDashboard from './components/CitizenDashboard';
 import ReportIssue from './components/ReportIssue';
 import AdminDashboard from './components/AdminDashboard';
+import SuperAdminDashboard from './components/SuperAdminDashboard';
 import InfoSchemes from './components/InfoSchemes';
+import ProfilePage from './components/ProfilePage';
+import Chatbot from './components/Chatbot';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 const BASE_URL = import.meta.env.VITE_URL;
 export const API_URL = `${BASE_URL}/api`;
@@ -17,6 +21,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [currentView, setCurrentView] = useState('landing');
   const [loading, setLoading] = useState(true);
+  const [language, setLanguage] = useState('en');
 
   const notify = (msg, type = 'success') => {
     toast[type](msg, {
@@ -35,7 +40,8 @@ export default function App() {
     try {
       const parsed = JSON.parse(stored);
       setUser(parsed);
-      setCurrentView(parsed.role === 'admin' ? 'admin' : 'dashboard');
+      setCurrentView(parsed.role === 'admin' ? 'admin' : parsed.role === 'superadmin' ? 'superadmin' : 'dashboard');
+      setLanguage(parsed.languagePreference || 'en');
     } catch {
       localStorage.removeItem('userInfo');
       setCurrentView('landing');
@@ -76,6 +82,13 @@ export default function App() {
     notify('Logged out successfully');
   };
 
+  const handleUserUpdate = (updatedUser) => {
+    setUser(updatedUser);
+    if (updatedUser.languagePreference) {
+      setLanguage(updatedUser.languagePreference);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0d1b3e] flex items-center justify-center">
@@ -95,14 +108,17 @@ export default function App() {
     dashboard: () => <CitizenDashboard user={user} setView={setCurrentView} notify={notify} />,
     report: () => <ReportIssue user={user} setView={setCurrentView} notify={notify} />,
     admin: () => <AdminDashboard user={user} setView={setCurrentView} notify={notify} />,
-    schemes: () => <InfoSchemes user={user} setView={setCurrentView} notify={notify} />
+    superadmin: () => <SuperAdminDashboard user={user} setView={setCurrentView} notify={notify} />,
+    schemes: () => <InfoSchemes user={user} setView={setCurrentView} notify={notify} />,
+    profile: () => <ProfilePage user={user} setView={setCurrentView} notify={notify} onUserUpdate={handleUserUpdate} />,
   };
 
   const CurrentView = views[currentView] || views.landing;
 
   return (
+    <LanguageProvider language={language} setLanguage={setLanguage}>
     <div className="min-h-screen bg-gradient-to-br from-slate via-indigo-50 to-purple-50 font-sans">
-      <Navbar user={user} setView={setCurrentView} onLogout={handleLogout} currentView={currentView} />
+      <Navbar user={user} setView={setCurrentView} onLogout={handleLogout} currentView={currentView} language={language} setLanguage={setLanguage} />
 
       {!user && currentView === 'landing' && (
         <div className="bg-[#0a0e1a] text-yellow-400 text-center py-2 text-xs font-bold border-b border-yellow-500/30">
@@ -124,7 +140,9 @@ export default function App() {
       </AnimatePresence>
 
       <Footer setView={setCurrentView} user={user} />
+      {user && <Chatbot user={user} language={language} />}
       <Toaster position="top-center" />
     </div>
+    </LanguageProvider>
   );
 }

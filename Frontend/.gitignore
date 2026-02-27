@@ -4,7 +4,6 @@ npm-debug.log
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
@@ -14,48 +13,82 @@ build/
 out/
 .vite/
 
-# Environment variables
+# ── Environment variables ────────────────────────────────────────────────────
 .env
+.env.*
+!.env.example
 .env.local
 .env.development
 .env.production
 .env.test
 .env*.local
 
-# Vite
+# ── SSL / TLS certificates & private keys ───────────────────────────────────
+*.pem
+*.key
+*.crt
+*.cert
+*.cer
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# ── SSH keys ────────────────────────────────────────────────────────────────
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+*.ppk
+
+# ── Google / Firebase credentials ───────────────────────────────────────────
+google-services.json
+GoogleService-Info.plist
+service-account*.json
+firebase-adminsdk*.json
+credentials.json
+client_secret*.json
+
+# ── Generic secret files ─────────────────────────────────────────────────────
+secrets/
+secrets.*
+*.secret
+*.secrets
+.htpasswd
+
+# ── Package manager auth tokens ──────────────────────────────────────────────
+.npmrc
+.yarnrc
+.yarnrc.yml
+
+# ── Vite ─────────────────────────────────────────────────────────────────────
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# React / Vite cache
+# ── Caches ───────────────────────────────────────────────────────────────────
 .cache/
-.svelte-kit/
 .eslintcache
 .stylelintcache
 
-# Logs
-logs
+# ── Logs ─────────────────────────────────────────────────────────────────────
+logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 lerna-debug.log*
 
-# Runtime data
-pids
+# ── Runtime data ─────────────────────────────────────────────────────────────
+pids/
 *.pid
 *.seed
 *.pid.lock
 
-# IDE / Editor
+# ── IDE / Editor ─────────────────────────────────────────────────────────────
 .idea/
 .vscode/
 *.swp
 *.swo
 *~
-.DS_Store
-Thumbs.db
 
-# OS generated files
+# ── OS generated files ───────────────────────────────────────────────────────
 .DS_Store
 .DS_Store?
 ._*
@@ -64,19 +97,13 @@ Thumbs.db
 ehthumbs.db
 Thumbs.db
 
-# Testing
+# ── Testing ──────────────────────────────────────────────────────────────────
 coverage/
 .nyc_output/
 
-# Optional: if you don't want to commit build artifacts
-/public/build/
-/public/hot
-
-# Tailwind / PostCSS cache (optional)
-*.css.map
-
-
-
-# Temporary files
+# ── Temporary files ──────────────────────────────────────────────────────────
 tmp/
 temp/
+
+# ── Vercel ───────────────────────────────────────────────────────────────────
+.vercel/
