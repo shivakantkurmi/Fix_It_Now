@@ -64,7 +64,7 @@ function AuthPage({ type, setUser, setView, notify }) {
       if (res.ok) {
         localStorage.setItem('userInfo', JSON.stringify(data));
         setUser(data);
-        setView(data.role === 'admin' ? 'admin' : 'dashboard');
+        setView(data.role === 'admin' ? 'admin' : data.role === 'superadmin' ? 'superadmin' : 'dashboard');
         notify(`Welcome, ${data.name}!`);
       } else notify(data.message || 'Action failed', 'error');
     } catch {

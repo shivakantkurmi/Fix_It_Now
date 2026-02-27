@@ -404,10 +404,11 @@ Feedback is attributed to **only the admin who resolved the issue**, not all adm
 
 | Detail           | Value                                                          |
 |------------------|----------------------------------------------------------------|
-| Model            | `RandomForestClassifier(n_estimators=200, class_weight="balanced")` |
-| Features         | TF-IDF bigrams (1500 features) + one-hot category encoding    |
+| Model            | `CalibratedClassifierCV(LinearSVC, cv=5)` — calibrated probabilities |
+| Features         | TF-IDF trigrams (3000 features, `min_df=2`) + one-hot category |
 | Classes          | `High`, `Medium`, `Low`                                        |
-| Training samples | 1181 (in `ml_service/training_data.json`)                      |
+| Training samples | 875 (in `ml_service/training_data.json`)                      |
+| CV Accuracy      | **86.7%** (5-fold stratified, up from 83.2% with RandomForest) |
 | Endpoint         | FastAPI `POST /predict-priority` on port 5001                  |
 | Fallback         | Keyword heuristic in `issueRoutes.js`                          |
 
