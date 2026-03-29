@@ -260,7 +260,7 @@ export default function ReportIssue({ user, setView, notify }) {
                 <p className={`text-sm font-bold ${ps.text}`}>AI Priority: {predictedPriority}</p>
                 <p className={`text-xs ${ps.text} opacity-70`}>
                   {priorityConf} confidence •{' '}
-                  {prioritySource === 'ml' ? '🤖 RandomForest ML' : '📏 Keyword heuristic'}
+                  {prioritySource === 'ml' ? '🤖 Calibrated LinearSVC ML' : '📏 Keyword heuristic'}
                 </p>
               </div>
               <span className={`w-3 h-3 rounded-full flex-shrink-0 ${ps.dot}`} />

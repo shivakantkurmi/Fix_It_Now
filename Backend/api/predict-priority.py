@@ -2,7 +2,7 @@
 Vercel Python Serverless Function — ML Priority Prediction
 Path on Vercel: /ml/predict-priority  (routed via vercel.json)
 
-scikit-learn RandomForestClassifier trained at module load time.
+scikit-learn CalibratedClassifierCV(LinearSVC) trained at module load time.
 Training data loaded from ml_service/training_data.json at cold start.
 """
 
@@ -45,7 +45,7 @@ X = hstack([X_text, X_cat])
 y = np.array(labels)
 
 # ── Train once at module load ───────────────────────────────────────────────
-# CalibratedClassifierCV gives reliable probabilities; ~4% better than RandomForest
+# CalibratedClassifierCV gives reliable probabilities; benchmarked ~4% better than the previous baseline
 _svc = LinearSVC(class_weight='balanced', max_iter=3000, C=1.0, random_state=42)
 model = CalibratedClassifierCV(_svc, cv=5)
 model.fit(X, y)

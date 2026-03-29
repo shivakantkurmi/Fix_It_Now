@@ -64,7 +64,7 @@ label_enc = LabelEncoder()
 y_train   = label_enc.fit_transform(labels)
 
 # CalibratedClassifierCV wraps LinearSVC to produce reliable probabilities
-# Benchmarked at 86.7% CV accuracy vs 83.2% for RandomForest on this dataset
+# Benchmarked at 86.7% CV accuracy vs 83.2% for the previous baseline model on this dataset
 _svc = LinearSVC(class_weight='balanced', max_iter=3000, C=1.0, random_state=42)
 clf  = CalibratedClassifierCV(_svc, cv=5)
 clf.fit(X_train, y_train)
@@ -92,7 +92,7 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"status": "healthy", "model": "RandomForestClassifier", "training_samples": len(TRAINING_DATA)}
+    return {"status": "healthy", "model": "CalibratedLinearSVC-v2", "training_samples": len(TRAINING_DATA)}
 
 
 @app.post("/predict-priority", response_model=PredictResponse)

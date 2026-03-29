@@ -115,7 +115,7 @@ Resolved issues are automatically purged after **24 hours** via a server-side cl
 | Image Upload     | Base64 encoding stored in MongoDB (up to 15 MB)                     |
 | Geolocation      | Browser Geolocation API + Nominatim (OpenStreetMap)                 |
 | AI Chatbot       | Google Gemini 2.5 Flash (multilingual, multi-turn)                  |
-| ML Prediction    | Python FastAPI + scikit-learn RandomForestClassifier + TF-IDF       |
+| ML Prediction    | Python FastAPI + scikit-learn CalibratedClassifierCV(LinearSVC) + TF-IDF |
 | Notifications    | react-hot-toast                                                     |
 | Bot Protection   | react-google-recaptcha                                              |
 | Deployment       | Vercel (Frontend & Backend)                                         |
@@ -408,7 +408,7 @@ Feedback is attributed to **only the admin who resolved the issue**, not all adm
 | Features         | TF-IDF trigrams (3000 features, `min_df=2`) + one-hot category |
 | Classes          | `High`, `Medium`, `Low`                                        |
 | Training samples | 875 (in `ml_service/training_data.json`)                      |
-| CV Accuracy      | **86.7%** (5-fold stratified, up from 83.2% with RandomForest) |
+| CV Accuracy      | **86.7%** (5-fold stratified, up from 83.2% with baseline model) |
 | Endpoint         | FastAPI `POST /predict-priority` on port 5001                  |
 | Fallback         | Keyword heuristic in `issueRoutes.js`                          |
 
@@ -452,7 +452,7 @@ File selected → FileReader.readAsDataURL() → Base64 string
 - **Feedback attributed to resolver** — Citizen ratings tied to the individual admin who closed the issue.
 - **Super Admin authority** — Seeded from `.env`, blocked from public registration, sees cross-admin performance.
 - **Admin ratings leaderboard** — Sorted by avg rating with satisfaction progress bars.
-- **ML priority prediction** — RandomForest on 1181 samples; keyword fallback when ML service is offline.
+- **ML priority prediction** — Calibrated LinearSVC pipeline on training samples; keyword fallback when ML service is offline.
 - **NLP duplicate detection** — TF-IDF + Haversine distance before submission.
 - **K-Means hotspot map** — Clustering of issue coordinates into an interactive SVG heatmap.
 - **Gemini AI chatbot** — Multilingual, multi-turn, grounded with live DB context.

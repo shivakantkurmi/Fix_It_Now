@@ -216,7 +216,7 @@ router.post('/check-duplicate', protect, async (req, res) => {
   }
 });
 
-// @desc    Predict issue priority using ML (RandomForest) with keyword heuristic fallback
+// @desc    Predict issue priority using ML (Calibrated LinearSVC) with keyword heuristic fallback
 // @route   POST /api/issues/predict-priority
 router.post('/predict-priority', protect, async (req, res) => {
   const { category = '', description = '' } = req.body;
