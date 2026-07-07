@@ -1,54 +1,14 @@
 // src/components/AuthPage.jsx
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckSquare } from 'lucide-react';
 import { API_URL } from '../App';
-
-function MockReCAPTCHA({ onChange }) {
-  const [verified, setVerified] = useState(false);
-
-  const handleClick = () => {
-    setVerified(true);
-    onChange(true);
-  };
-
-  return (
-    <div className="bg-[#f9f9f9] border border-[#d3d3d3] rounded-[3px] w-full max-w-[304px] h-[78px] flex items-center justify-between px-3 shadow-sm my-4">
-      <div className="flex items-center gap-3">
-        <div
-          onClick={handleClick}
-          className={`w-[28px] h-[28px] border-2 rounded-[2px] bg-white cursor-pointer flex items-center justify-center ${verified ? 'border-transparent' : 'border-[#c1c1c1] hover:border-[#b2b2b2]'}`}
-        >
-          {verified && <CheckSquare className="text-green-600" size={34} fill="white" />}
-        </div>
-        <span className="text-[14px] text-black font-medium">I'm not a robot</span>
-      </div>
-      <div className="flex flex-col items-center text-center opacity-70">
-        <img
-          src="https://www.gstatic.com/recaptcha/api2/logo_48.png"
-          alt="reCAPTCHA logo"
-          className="w-[28px] h-[28px] sm:w-[32px] sm:h-[32px]"
-          onError={(e) => (e.target.style.display = 'none')}
-        />
-        <span className="text-[10px] text-[#555] mt-1">reCAPTCHA</span>
-        <div className="text-[8px] text-[#555] mt-[2px]">
-          <span className="mr-1">Privacy</span>-<span>Terms</span>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function AuthPage({ type, setUser, setView, notify }) {
   const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'citizen', phone: '' });
   const [loading, setLoading] = useState(false);
-  const [captchaVerified, setCaptchaVerified] = useState(false);
-
-  const onCaptchaChange = (value) => value && setCaptchaVerified(true);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!captchaVerified) return notify('Please verify that you are not a robot.', 'error');
 
     setLoading(true);
     const endpoint = type === 'login' ? '/auth/login' : '/auth/register';
@@ -104,10 +64,6 @@ function AuthPage({ type, setUser, setView, notify }) {
 
             <input type="email" placeholder="Email Address" className="w-full p-3 sm:p-4 bg-slate-50 border border-slate-200 rounded-lg" onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
             <input type="password" placeholder="Password" className="w-full p-3 sm:p-4 bg-slate-50 border border-slate-200 rounded-lg" onChange={(e) => setFormData({ ...formData, password: e.target.value })} required />
-
-            <div className="flex justify-center">
-              <MockReCAPTCHA onChange={onCaptchaChange} />
-            </div>
 
             <button type="submit" disabled={loading} className="w-full bg-[#0d1b3e] text-white py-3 sm:py-4 rounded-lg font-bold text-base sm:text-lg shadow-xl hover:bg-[#1a237e] transition">
               {loading ? 'Processing...' : type === 'login' ? 'SECURE LOGIN' : 'CREATE ACCOUNT'}

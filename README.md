@@ -52,7 +52,7 @@ Resolved issues are automatically purged after **24 hours** via a server-side cl
 
 ![Auth Page](docs/screenshots/auth.png)
 
-*Authentication page with Login and Register tabs. Includes Google reCAPTCHA bot protection.*
+*Authentication page with Login and Register tabs.*
 
 ---
 
@@ -117,7 +117,6 @@ Resolved issues are automatically purged after **24 hours** via a server-side cl
 | AI Chatbot       | Google Gemini 2.5 Flash (multilingual, multi-turn)                  |
 | ML Prediction    | Python FastAPI + scikit-learn CalibratedClassifierCV(LinearSVC) + TF-IDF |
 | Notifications    | react-hot-toast                                                     |
-| Bot Protection   | react-google-recaptcha                                              |
 | Deployment       | Vercel (Frontend & Backend)                                         |
 
 ---
