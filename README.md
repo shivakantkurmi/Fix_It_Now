@@ -68,7 +68,7 @@ Resolved issues are automatically purged after **24 hours** via a server-side cl
 
 ![Report Issue](docs/screenshots/report-issue.png)
 
-*Issue submission form — category, photo (up to 15 MB), GPS location, address auto-fill, and ML priority prediction.*
+*Issue submission form — category, photo (up to 15 MB), GPS location, address auto-fill, ML priority prediction, and a pre-submit check that warns when a nearby similar issue has already been reported.*
 
 ---
 
@@ -102,6 +102,14 @@ Resolved issues are automatically purged after **24 hours** via a server-side cl
 
 *Info hub listing government schemes and local facilities, filterable by type and region.*
 
+---
+
+
+### AI Chatbot
+
+![AI Chatbot](docs/screenshots/chatbot.png)
+
+*Multilingual chatbot that helps users navigate the app, report issues, check issue status, and switch languages while getting guided answers.*
 ---
 
 ## Tech Stack
@@ -302,7 +310,7 @@ superadmin  ←  Top-level authority (seeded from .env only)
 | PUT    | `/:id/status`       | Admin / SuperAdmin| Update status; sets `resolvedBy` on Resolved   |
 | DELETE | `/:id`              | Owner             | Delete own non-resolved issue                  |
 | PUT    | `/:id/feedback`     | Issue owner       | Submit rating + comment                        |
-| POST   | `/check-duplicate`  | Any logged-in     | NLP + Geo duplicate detection                  |
+| POST   | `/check-duplicate`  | Any logged-in     | Pre-submit NLP + geo check for nearby similar issues |
 | POST   | `/predict-priority` | Any logged-in     | ML priority prediction                         |
 
 ### Analytics  `/api/analytics`
@@ -452,7 +460,7 @@ File selected → FileReader.readAsDataURL() → Base64 string
 - **Super Admin authority** — Seeded from `.env`, blocked from public registration, sees cross-admin performance.
 - **Admin ratings leaderboard** — Sorted by avg rating with satisfaction progress bars.
 - **ML priority prediction** — Calibrated LinearSVC pipeline on training samples; keyword fallback when ML service is offline.
-- **NLP duplicate detection** — TF-IDF + Haversine distance before submission.
+- **NLP duplicate detection** — warns before submission if a nearby issue has similar wording, using TF-IDF + Haversine distance.
 - **K-Means hotspot map** — Clustering of issue coordinates into an interactive SVG heatmap.
 - **Gemini AI chatbot** — Multilingual, multi-turn, grounded with live DB context.
 - **JWT persistence + auto-logout** — Token stored in localStorage; re-verified on every app load.
